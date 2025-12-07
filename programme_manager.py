@@ -28,7 +28,20 @@ class ProgrammeManager:
             self.CATEGORY_CODES_FILE = os.getenv("CATEGORY_CODES_FILE", "category_codes") + ".json"
             self.COUNTRIES_FILE = os.getenv("COUNTRIES_FILE", "countries") + ".json"
             self.LANGUAGES_FILE = os.getenv("LANGUAGES_FILE", "languages") + ".json"
-            self.SERVICE_ACCOUNT_KEY_FILE = os.getenv("SERVICE_ACCOUNT_KEY_FILE", "service_account_key_iffk") + ".json"
+            self.SERVICE_ACCOUNT_FILE = os.getenv("SERVICE_ACCOUNT_KEY_FILE", "service_account_key_iffk") + ".json"
+            self.SERVICE_ACCOUNT_INFO = {
+                "type": os.getenv("SERVICE_ACCOUNT_TYPE"),
+                "project_id": os.getenv("SERVICE_ACCOUNT_PROJECT_ID"),
+                "private_key_id": os.getenv("SERVICE_ACCOUNT_PRIVATE_KEY_ID"),
+                "private_key": os.getenv("SERVICE_ACCOUNT_PRIVATE_KEY").replace("\\n", "\n"),
+                "client_email": os.getenv("SERVICE_ACCOUNT_CLIENT_EMAIL"),
+                "client_id": os.getenv("SERVICE_ACCOUNT_CLIENT_ID"),
+                "auth_uri": os.getenv("SERVICE_ACCOUNT_AUTH_URI"),
+                "token_uri": os.getenv("SERVICE_ACCOUNT_TOKEN_URI"),
+                "auth_provider_x509_cert_url": os.getenv("SERVICE_ACCOUNT_AUTH_PROVIDER_CERT_URL"),
+                "client_x509_cert_url": os.getenv("SERVICE_ACCOUNT_CLIENT_CERT_URL"),
+                "universe_domain": os.getenv("SERVICE_ACCOUNT_UNIVERSE_DOMAIN"),
+            }
             self.DRIVE_FOLDER_ID = os.getenv("DRIVE_FOLDER_ID")
             self.WORKBOOK_FILENAME = os.getenv("WORKBOOK_FILENAME", "IFFK 2025")
             self.FILMS_LIST_SHEET = os.getenv("FILMS_LIST_SHEET", "Films")
@@ -62,8 +75,8 @@ class ProgrammeManager:
                 "https://www.googleapis.com/auth/spreadsheets",
                 "https://www.googleapis.com/auth/drive"
             ]
-            creds = Credentials.from_service_account_file(
-                self.SERVICE_ACCOUNT_KEY_FILE,
+            creds = Credentials.from_service_account_info(
+                self.SERVICE_ACCOUNT_INFO,
                 scopes=scopes
             )
 
