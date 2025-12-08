@@ -345,8 +345,6 @@ if menu == view_names[3]:
         "AVERAGE_SCORE",
         "IS_SELECTED"
     ]].copy()
-    display_df = display_df.sort_values(["IS_SELECTED", "AVERAGE_SCORE","YEAR", "RUNNING_TIME", "PROGRAMME_ID"], 
-                                        ascending=[False, False, False, True, True])
     
     display_df["AVERAGE_SCORE"] = display_df["AVERAGE_SCORE"].fillna(0).round(2)
     display_df["IS_SELECTED"] = display_df["IS_SELECTED"].map(
@@ -368,3 +366,4 @@ if menu == view_names[3]:
         width="content",
         hide_index=True
     )
+
