@@ -322,7 +322,6 @@ if menu == view_names[3]:
     filtered_films_df = films_df[films_df["CATEGORY"].isin(selected_categories)]
     merged_df = filtered_films_df.merge(selection_df, on="PROGRAMME_ID", how="left")
     display_df = merged_df[[
-        "PROGRAMME_ID",
         "CATEGORY",
         "INTERNATIONAL_TITLE",
         "ORIGINAL_TITLE",
@@ -340,7 +339,6 @@ if menu == view_names[3]:
     )
 
     display_df = display_df.rename(columns={
-        "PROGRAMME_ID": "Programme ID",
         "CATEGORY": "Category",
         "INTERNATIONAL_TITLE": "Intl. Title",
         "ORIGINAL_TITLE": "Original Title",
