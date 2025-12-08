@@ -39,7 +39,7 @@ view_names = ["View Programmes", "Add Programme", "Select Films", "Scoring Overv
 menu = st.sidebar.radio("Navigation", view_names, index=0)
 
 @st.cache_data
-def load_data(sheet_name):
+def load_data_with_cache(sheet_name):
     try:
         sheet = programme_manager.get_sheet(sheet_name)
         df = pd.DataFrame(sheet.get_all_records())
@@ -49,9 +49,18 @@ def load_data(sheet_name):
         st.error(f"Failed to load {sheet_name} data. Check logs.")
         return pd.DataFrame()
 
-films_df = load_data(programme_manager.FILMS_LIST_SHEET)
-talks_df = load_data(programme_manager.TALKS_SHEET)
-selection_df = load_data(programme_manager.PROGRAMME_SELECTION_SHEET)
+def load_data_without_cache(sheet_name):
+    try:
+        sheet = programme_manager.get_sheet(sheet_name)
+        df = pd.DataFrame(sheet.get_all_records())
+        return df
+    except Exception as e:
+        logging.error(f"Error loading Google Sheets ({sheet_name}): {e}")
+        st.error(f"Failed to load {sheet_name} data. Check logs.")
+        return pd.DataFrame()
+
+films_df = load_data_with_cache(programme_manager.FILMS_LIST_SHEET)
+talks_df = load_data_with_cache(programme_manager.TALKS_SHEET)
 
 if menu == view_names[0]:
     st.title("🎞️ All Programmes")
@@ -220,11 +229,13 @@ if menu == view_names[1]:
 
 if menu == view_names[2]:
     st.title("🎬 Film Scoring & Selection")
+    selection_df = load_data_without_cache(programme_manager.PROGRAMME_SELECTION_SHEET)
 
     categories = sorted(films_df["CATEGORY"].unique())
     category = st.selectbox("Select Category", categories)
 
-    filtered = films_df[films_df["CATEGORY"] == category]
+    filtered_films_df = films_df[films_df["CATEGORY"] == category]
+    filtered = filtered_films_df.copy()
     filtered["TEMP_TITLE"] = filtered['INTERNATIONAL_TITLE'] + " (" +filtered['ORIGINAL_TITLE'] + ")"
     film_titles = filtered["TEMP_TITLE"].tolist()
 
@@ -278,34 +289,36 @@ if menu == view_names[2]:
         scores = [synopsis_score, trailer_score, director_score, writer_score, letterboxd_score]
         valid_scores = [s for s in scores if s > 0]
         avg_score = sum(valid_scores) / len(valid_scores) if valid_scores else 0
+        save_entry_button = st.button("💾 Save Entry")
 
-        if st.button("💾 Save Entry"):
-            new_entry = {
-                "PROGRAMME_ID": programme_id,
-                "SYNOPSIS": synopsis_score,
-                "TRAILER": trailer_score,
-                "DIRECTOR_PROFILE": director_score,
-                "WRITER_PROFILE": writer_score,
-                "LETTERBOXD_REVIEWS": letterboxd_score,
-                "AVERAGE_SCORE": avg_score,
-                "IS_SELECTED": is_selected,
-            }
+    if save_entry_button:
+        new_entry = {
+            "PROGRAMME_ID": programme_id,
+            "SYNOPSIS": synopsis_score,
+            "TRAILER": trailer_score,
+            "DIRECTOR_PROFILE": director_score,
+            "WRITER_PROFILE": writer_score,
+            "LETTERBOXD_REVIEWS": letterboxd_score,
+            "AVERAGE_SCORE": avg_score,
+            "IS_SELECTED": is_selected,
+        }
 
-            # Remove old entry and append new one
-            if not selection_df.empty:
-                selection_df = selection_df[selection_df["PROGRAMME_ID"] != programme_id]
-            selection_df = pd.concat([selection_df, pd.DataFrame([new_entry])], ignore_index=True)
+        # Remove old entry and append new one
+        if not selection_df.empty:
+            selection_df = selection_df[selection_df["PROGRAMME_ID"] != programme_id]
+        selection_df = pd.concat([selection_df, pd.DataFrame([new_entry])], ignore_index=True)
 
-            logging.info(f"Data prepared for programme {programme_id}")
+        logging.info(f"Data prepared for programme {programme_id}")
 
-    try:
-        programme_manager.replace_sheet_data(programme_manager.PROGRAMME_SELECTION_SHEET, selection_df)
-        st.success(f"Scoring added successfully! PROGRAMME ID: {programme_id}")
-    except Exception:
-        st.error("Failed to save the scoring. Check logs.")
+        try:
+            programme_manager.replace_sheet_data(programme_manager.PROGRAMME_SELECTION_SHEET, selection_df)
+            st.success(f"Scoring added successfully! PROGRAMME ID: {programme_id}")
+        except Exception:
+            st.error("Failed to save the scoring. Check logs.")
 
 if menu == view_names[3]:
     st.title("🎬 Film Scores Overview")
+    selection_df = load_data_without_cache(programme_manager.PROGRAMME_SELECTION_SHEET)
 
     # Category filter
     st.sidebar.subheader("Filter by Category")
@@ -350,6 +363,6 @@ if menu == view_names[3]:
 
     st.dataframe(
         display_df,
-        use_container_width=True,
+        width="content",
         hide_index=True
     )
