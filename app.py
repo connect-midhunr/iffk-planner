@@ -229,7 +229,7 @@ if menu == view_names[1]:
 
 if menu == view_names[2]:
     st.title("🎬 Film Scoring & Selection")
-    selection_df = load_data_without_cache(programme_manager.PROGRAMME_SELECTION_SHEET)
+    selection_df = load_data_with_cache(programme_manager.PROGRAMME_SELECTION_SHEET)
 
     categories = sorted(films_df["CATEGORY"].unique())
     category = st.selectbox("Select Category", categories)
@@ -318,7 +318,7 @@ if menu == view_names[2]:
 
 if menu == view_names[3]:
     st.title("🎬 Film Scores Overview")
-    selection_df = load_data_without_cache(programme_manager.PROGRAMME_SELECTION_SHEET)
+    selection_df = load_data_with_cache(programme_manager.PROGRAMME_SELECTION_SHEET)
 
     # Category filter
     st.sidebar.subheader("Filter by Category")
@@ -334,6 +334,8 @@ if menu == view_names[3]:
 
     filtered_films_df = films_df[films_df["CATEGORY"].isin(selected_categories)]
     merged_df = filtered_films_df.merge(selection_df, on="PROGRAMME_ID", how="left")
+    merged_df = merged_df.sort_values(["IS_SELECTED", "AVERAGE_SCORE","YEAR", "RUNNING_TIME", "PROGRAMME_ID"], 
+                                        ascending=[False, False, False, True, True])
     display_df = merged_df[[
         "CATEGORY",
         "INTERNATIONAL_TITLE",
